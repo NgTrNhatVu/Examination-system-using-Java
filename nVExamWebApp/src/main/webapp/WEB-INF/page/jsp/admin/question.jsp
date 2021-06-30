@@ -77,7 +77,11 @@
                             <td>${ques.getCatID()}</td>
                             <td>${ques.getStatus()}</td>
                             <td><a href="${updateQues}">Update</a></td>
-                            <td><a href="${deleteQues}">Delete</a></td>
+                            <td><a href="${deleteQues}" onclick="if (!confirm('Are you sure?'))
+                                        return false">
+                                    Delete
+                                </a>
+                            </td>
                         </tr>
                     </c:forEach>
                 </table>

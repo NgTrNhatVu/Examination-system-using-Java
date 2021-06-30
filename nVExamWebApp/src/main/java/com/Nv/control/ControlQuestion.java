@@ -5,7 +5,8 @@
  */
 package com.Nv.control;
 
-import com.Nv.dao.DAO;
+import com.Nv.dao.CategoryDao;
+import com.Nv.dao.QuestionDao;
 import com.Nv.entity.Category;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,7 +28,8 @@ import static jdk.nashorn.internal.objects.NativeError.printStackTrace;
  */
 public class ControlQuestion extends HttpServlet {
 
-    private com.Nv.dao.DAO dao;
+    private com.Nv.dao.QuestionDao quesDao;
+    private com.Nv.dao.CategoryDao catDao;
     @Resource(name = "jdbc/nv_exam_db")
     private DataSource dataSource;
 
@@ -36,7 +38,8 @@ public class ControlQuestion extends HttpServlet {
         super.init();
 
         try {
-            this.dao = new DAO(this.dataSource);
+            this.quesDao = new QuestionDao(this.dataSource);
+            this.catDao = new CategoryDao(this.dataSource);
         } catch (Exception e) {
             throw new ServletException(e);
         }
@@ -73,6 +76,9 @@ public class ControlQuestion extends HttpServlet {
             case "update_ques":
                 updateQues(request, response);
                 break;
+            case "delete_ques":
+                deleteQues(request, response);
+                break;
             default:
                 showCategory(request, response);
                 break;
@@ -83,7 +89,7 @@ public class ControlQuestion extends HttpServlet {
     private void showQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException {
         try {
             //Get questions from DB
-            List<Question> quesList = dao.getAllQuestion();
+            List<Question> quesList = quesDao.getAll();
             //set 
             request.setAttribute("question_list", quesList);
             //Send to jsp
@@ -97,7 +103,7 @@ public class ControlQuestion extends HttpServlet {
 
     private void showCategory(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            List<Category> catList = dao.getAllCategory();
+            List<Category> catList = catDao.getAll();
             request.setAttribute("cat_list", catList);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/category.jsp");
             dispatcher.forward(request, response);
@@ -126,11 +132,11 @@ public class ControlQuestion extends HttpServlet {
                 int category = Integer.parseInt(request.getParameter("category"));
                 int status = Integer.parseInt(request.getParameter("status"));
                 Question newQues = new Question(quesDes, correctAns, opt1, opt2, opt3, opt4, opt5, opt6, category, status);
-                dao.addQuestion(newQues);
+                quesDao.add(newQues);
                 showQuestion(request, response);
             } else {
                 //Send out category for drop down selection
-                List<Category> catList = dao.getAllCategory();
+                List<Category> catList = catDao.getAll();
                 request.setAttribute("cat_list", catList);
                 //Redirect to addding form
                 RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/add_question.jsp");
@@ -151,7 +157,7 @@ public class ControlQuestion extends HttpServlet {
                 catTitle = catTitle.substring(0, 1).toUpperCase() + catTitle.substring(1).toLowerCase();
                 String catImg = request.getParameter("cat_img");
 
-                dao.addCategory(new Category(catTitle, catImg));
+                catDao.add(new Category(catTitle, catImg));
                 showCategory(request, response);
             } else {
                 RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/add_category.jsp");
@@ -164,9 +170,9 @@ public class ControlQuestion extends HttpServlet {
 
     private void sendQuestionToUpdate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            Question theQuestion = dao.findQuestion(Integer.parseInt(request.getParameter("quesId")));
+            Question theQuestion = quesDao.find(Integer.parseInt(request.getParameter("quesId")));
             request.setAttribute("the_question", theQuestion);
-            List<Category> catList = dao.getAllCategory();
+            List<Category> catList = catDao.getAll();
             request.setAttribute("cat_list", catList);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/update_question.jsp");
             dispatcher.forward(request, response);
@@ -195,11 +201,22 @@ public class ControlQuestion extends HttpServlet {
             int status = Integer.parseInt(request.getParameter("status"));
             Question theQuestion = new Question(ID, quesDes, correctAns, opt1, opt2, opt3, opt4, opt5, opt6, category, status);
 
-            dao.updateQuestion(theQuestion);
+            quesDao.update(theQuestion);
             showQuestion(request, response);
 
         } catch (Exception e) {
 
+        }
+    }
+
+    private void deleteQues(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        try {
+            int quesId = Integer.parseInt(request.getParameter("quesId"));
+            quesDao.delete(quesId);
+            showQuestion(request, response);
+        }catch(Exception e){
+            
         }
     }
 
