@@ -7,6 +7,7 @@ package com.Nv.control;
 
 import com.Nv.dao.CategoryDao;
 import com.Nv.dao.QuestionDao;
+import com.Nv.dao.QuestionSetDao;
 import com.Nv.entity.Category;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,7 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.util.List;
 import com.Nv.entity.Question;
+import com.Nv.entity.QuestionSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import javax.servlet.RequestDispatcher;
 import static jdk.nashorn.internal.objects.NativeError.printStackTrace;
 
@@ -28,8 +31,9 @@ import static jdk.nashorn.internal.objects.NativeError.printStackTrace;
  */
 public class ControlQuestion extends HttpServlet {
 
-    private com.Nv.dao.QuestionDao quesDao;
-    private com.Nv.dao.CategoryDao catDao;
+    private QuestionDao quesDao;
+    private CategoryDao catDao;
+    private QuestionSetDao quesSetDao;
     @Resource(name = "jdbc/nv_exam_db")
     private DataSource dataSource;
 
@@ -40,6 +44,7 @@ public class ControlQuestion extends HttpServlet {
         try {
             this.quesDao = new QuestionDao(this.dataSource);
             this.catDao = new CategoryDao(this.dataSource);
+            this.quesSetDao = new QuestionSetDao(this.dataSource);
         } catch (Exception e) {
             throw new ServletException(e);
         }
@@ -79,6 +84,9 @@ public class ControlQuestion extends HttpServlet {
             case "delete_ques":
                 deleteQues(request, response);
                 break;
+            case "all_question_set":
+                showQuestionSet(request, response);
+                break;
             default:
                 showCategory(request, response);
                 break;
@@ -99,17 +107,6 @@ public class ControlQuestion extends HttpServlet {
             printStackTrace(e);
         }
 
-    }
-
-    private void showCategory(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            List<Category> catList = catDao.getAll();
-            request.setAttribute("cat_list", catList);
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/category.jsp");
-            dispatcher.forward(request, response);
-        } catch (Exception e) {
-            printStackTrace(e);
-        }
     }
 
     private void addQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -143,26 +140,6 @@ public class ControlQuestion extends HttpServlet {
                 dispatcher.forward(request, response);
             }
 
-        } catch (Exception e) {
-            printStackTrace(e);
-        }
-    }
-
-    private void addCategory(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            if (request.getParameter("cat_title") != null) {
-                //Get info from submiited form
-                String catTitle = request.getParameter("cat_title");
-                //Capital first word
-                catTitle = catTitle.substring(0, 1).toUpperCase() + catTitle.substring(1).toLowerCase();
-                String catImg = request.getParameter("cat_img");
-
-                catDao.add(new Category(catTitle, catImg));
-                showCategory(request, response);
-            } else {
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/add_category.jsp");
-                dispatcher.forward(request, response);
-            }
         } catch (Exception e) {
             printStackTrace(e);
         }
@@ -215,11 +192,60 @@ public class ControlQuestion extends HttpServlet {
             int quesId = Integer.parseInt(request.getParameter("quesId"));
             quesDao.delete(quesId);
             showQuestion(request, response);
-        }catch(Exception e){
-            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    //======================= CATEGORY  ========================================
+
+    private void showCategory(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            List<Category> catList = catDao.getAll();
+            request.setAttribute("cat_list", catList);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/category.jsp");
+            dispatcher.forward(request, response);
+        } catch (SQLException e) {
+            printStackTrace(e);
         }
     }
 
+    private void addCategory(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            if (request.getParameter("cat_title") != null) {
+                //Get info from submiited form
+                String catTitle = request.getParameter("cat_title");
+                //Capital first word
+                catTitle = catTitle.substring(0, 1).toUpperCase() + catTitle.substring(1).toLowerCase();
+                String catImg = request.getParameter("cat_img");
+
+                catDao.add(new Category(catTitle, catImg));
+                showCategory(request, response);
+            } else {
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/add_category.jsp");
+                dispatcher.forward(request, response);
+            }
+        } catch (SQLException e) {
+            printStackTrace(e);
+        }
+    }
+
+    //======================= QUESTION SET  ========================================
+    
+    private void showQuestionSet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+        try{
+            PrintWriter out = response.getWriter();
+            List<QuestionSet> questionSets = new ArrayList<>();
+            questionSets = quesSetDao.getAll();
+            request.setAttribute("question_sets", questionSets);
+            
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/question_set.jsp");
+            dispatcher.forward(request, response);
+        }catch(SQLException e){
+            printStackTrace(e);
+        }
+            
+    }
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

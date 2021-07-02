@@ -3,5 +3,7 @@ com\Nv\entity\Question.class
 com\Nv\control\ControlQuestion.class
 com\Nv\dao\NothingDao.class
 com\Nv\dao\CategoryDao.class
+com\Nv\entity\QuestionSet.class
+com\Nv\dao\QuestionSetDao.class
 com\Nv\entity\Category.class
 com\Nv\dao\QuestionDao.class

@@ -31,8 +31,12 @@
                 <c:url var="categories" value="ControlQuestion">
                     <c:param name="command" value="all_category" />
                 </c:url>
+                <c:url var="question_sets" value="ControlQuestion">
+                    <c:param name="command" value="all_question_set"/>
+                </c:url>
                 <a href="${questions}">Questions</a>
                 <a href="${categories}">Categories</a>
+                <a href="${question_sets}">Sets</a>
             </nav>
         </header>
 
