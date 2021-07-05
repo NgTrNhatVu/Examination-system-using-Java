@@ -32,7 +32,7 @@
                 <button><a href="${addCategory}">New Category</a></button>
             </div>
             <main>
-                <c:forEach var="ques_set" items="${question_sets}">
+                <c:forEach var="ques_set" items="${ques_set_list}">
                     <div class="display-box">
                         <img src="${ques_set.getImage()}" width="150px" heigth="150px" alt="Set's banner"/>
                         <h3>${ques_set.title}</h3>

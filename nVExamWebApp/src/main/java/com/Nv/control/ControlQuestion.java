@@ -42,6 +42,7 @@ public class ControlQuestion extends HttpServlet {
         super.init();
 
         try {
+            //Create daos
             this.quesDao = new QuestionDao(this.dataSource);
             this.catDao = new CategoryDao(this.dataSource);
             this.quesSetDao = new QuestionSetDao(this.dataSource);
@@ -61,7 +62,7 @@ public class ControlQuestion extends HttpServlet {
         } catch (Exception e) {
 
         }
-
+        //Call each function based on command's value on the url
         switch (command) {
             case "all_question":
                 showQuestion(request, response);
@@ -94,7 +95,8 @@ public class ControlQuestion extends HttpServlet {
 
     }
 
-    private void showQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+    //======================= QUESTION  ========================================
+    private void showQuestion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             //Get questions from DB
             List<Question> quesList = quesDao.getAll();
@@ -103,7 +105,7 @@ public class ControlQuestion extends HttpServlet {
             //Send to jsp
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/question.jsp");
             dispatcher.forward(request, response);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             printStackTrace(e);
         }
 
@@ -140,21 +142,26 @@ public class ControlQuestion extends HttpServlet {
                 dispatcher.forward(request, response);
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             printStackTrace(e);
         }
     }
-
+    
+    //This function send us to update form and fill it with current information of the question
     private void sendQuestionToUpdate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
+            //Passing the question information
             Question theQuestion = quesDao.find(Integer.parseInt(request.getParameter("quesId")));
             request.setAttribute("the_question", theQuestion);
+            
+            //Pass value of categories
             List<Category> catList = catDao.getAll();
             request.setAttribute("cat_list", catList);
+            
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/update_question.jsp");
             dispatcher.forward(request, response);
         } catch (SQLException e) {
-
+            printStackTrace(e);
         }
     }
 
@@ -181,8 +188,8 @@ public class ControlQuestion extends HttpServlet {
             quesDao.update(theQuestion);
             showQuestion(request, response);
 
-        } catch (Exception e) {
-
+        } catch (SQLException e) {
+            printStackTrace(e);
         }
     }
 
@@ -230,22 +237,23 @@ public class ControlQuestion extends HttpServlet {
     }
 
     //======================= QUESTION SET  ========================================
-    
-    private void showQuestionSet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-        try{
+    private void showQuestionSet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
             PrintWriter out = response.getWriter();
-            List<QuestionSet> questionSets = new ArrayList<>();
-            questionSets = quesSetDao.getAll();
-            request.setAttribute("question_sets", questionSets);
-            
+            List<QuestionSet> questionSets = quesSetDao.getAll();
+
+            //Note to future: I used to call this question_sets and it got error
+            //because it was duplicate with another param's name in header
+            request.setAttribute("ques_set_list", questionSets);
+
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/page/jsp/admin/question_set.jsp");
             dispatcher.forward(request, response);
-        }catch(SQLException e){
+        } catch (SQLException e) {
             printStackTrace(e);
         }
-            
+
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
